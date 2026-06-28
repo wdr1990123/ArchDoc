@@ -1,0 +1,14 @@
+layers:
+  - ui
+  - bll
+  - dal
+  - common
+allowed:
+  - from: ui
+    to: [bll, common]
+  - from: bll
+    to: [dal, common]
+  - from: dal
+    to: [common]
+  - from: common
+    to: []

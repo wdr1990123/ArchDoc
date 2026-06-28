@@ -1,0 +1,166 @@
+/** 中文 UI 文案 */
+export const zh = {
+  app: {
+    name: "ArchDoc",
+    tagline: "架构诊断平台",
+    subtitle: ".NET 多仓库架构分析与重构建议",
+  },
+  nav: {
+    domains: "诊断域",
+    settings: "系统设置",
+  },
+  common: {
+    back: "返回",
+    save: "保存",
+    cancel: "取消",
+    delete: "删除",
+    add: "添加",
+    test: "测试连接",
+    testing: "测试中…",
+    saving: "保存中…",
+    loading: "加载中…",
+    copy: "复制",
+    copied: "已复制",
+    optional: "可选",
+    required: "必填",
+    apiKey: "API 密钥",
+    apiKeyPlaceholder: "留空则保持原密钥不变",
+  },
+  status: {
+    pending: "等待中",
+    running: "运行中",
+    completed: "已完成",
+    failed: "失败",
+    partial: "部分完成",
+  },
+  severity: {
+    critical: "严重",
+    high: "高",
+    medium: "中",
+    low: "低",
+    all: "全部",
+  },
+  home: {
+    title: "诊断域",
+    desc: "管理多个代码仓库的联合架构诊断，支持耦合分析、AI 报告与绞杀者迁移规划。",
+    dbError: "数据库未连接，请检查 DATABASE_URL 并执行 npm run db:init",
+    createTitle: "创建诊断域",
+    namePlaceholder: "诊断域名称，如 MES 核心系统",
+    descPlaceholder: "简要描述（可选）",
+    apiKeyHint: "若服务端设置了 ARCHDOC_API_KEY，请在此填写",
+    createBtn: "创建诊断域",
+    creating: "创建中…",
+    empty: "暂无诊断域，请先创建一个开始诊断。",
+    domainBadge: "诊断域",
+    createdAt: "创建于",
+  },
+  domain: {
+    repos: "代码仓库",
+    federation: "联邦视图",
+    recentScans: "最近扫描",
+    noScans: "暂无扫描记录，请使用 Scanner CLI 上传扫描结果。",
+    repositories: "代码仓库",
+    federationSnapshots: "联邦快照",
+    snapshotTitle: "创建联邦快照",
+    snapshotDesc: "选择多个仓库的已完成扫描，聚合跨仓库依赖关系。",
+    snapshotName: "快照名称",
+    snapshotBtn: "生成联邦快照",
+    selectScans: "请至少选择 2 个已完成的扫描",
+    snapshotOk: "联邦快照已创建",
+  },
+  repo: {
+    title: "代码仓库管理",
+    back: "返回诊断域",
+    addTitle: "添加代码仓库",
+    namePlaceholder: "仓库名称，如 Mes.Production",
+    solutionPlaceholder: "Solution 路径，如 Mes.sln",
+    addBtn: "添加仓库",
+    createdHint: "仓库 ID（Scanner 扫描时需要）：",
+    scannerTitle: "Scanner 命令行",
+    scannerDesc: "在本地或 CI 机器上执行扫描并上传结果：",
+  },
+  scan: {
+    overview: "扫描概览",
+    back: "返回诊断域",
+    graph: "依赖图",
+    issues: "问题清单",
+    healthScore: "架构健康分",
+    modules: "模块数",
+    loc: "代码行数",
+    issuesSummary: "问题统计",
+    radar: "架构雷达图",
+    topRisk: "高风险模块 Top 5",
+    aiTitle: "AI 架构诊断",
+    aiBtn: "生成 AI 诊断报告",
+    aiGenerating: "正在生成报告…",
+    reports: "历史报告",
+    strangler: "绞杀者候选（Top 5）",
+    score: "评分",
+    graphTitle: "模块依赖图",
+    graphDesc: "个模块 · 条依赖 · 红色节点表示处于循环依赖中",
+    issuesTitle: "架构问题",
+    reportTitle: "AI 诊断报告",
+    validationWarn: "校验提示",
+    rawJson: "原始 JSON",
+  },
+  federation: {
+    title: "多仓库联邦视图",
+    desc: "跨仓库依赖与 NuGet 包引用关系",
+    empty: "暂无联邦快照。请在诊断域首页选择多个已完成扫描后创建。",
+    crossDeps: "条跨仓库依赖",
+  },
+  settings: {
+    title: "系统设置",
+    healthTitle: "系统状态",
+    healthOk: "运行正常",
+    healthDegraded: "部分异常",
+    dbConnected: "数据库已连接",
+    dbDisconnected: "数据库未连接",
+    llmTitle: "大模型配置",
+    llmDesc: "支持配置多个 OpenAI 兼容接口（OpenAI、DeepSeek、通义、私有 Qwen 等），按用途分配不同模型。",
+    addProfile: "添加模型",
+    profileName: "配置名称",
+    profileRole: "用途",
+    roles: {
+      diagnosis: "架构诊断（主模型）",
+      summary: "摘要生成",
+      fallback: "备用 / 降级",
+    },
+    baseUrl: "API 地址",
+    model: "模型名称",
+    maxTokens: "最大 Token",
+    enabled: "启用",
+    default: "默认",
+    setDefault: "设为默认诊断模型",
+    testSuccess: "连接成功",
+    testFailed: "连接失败",
+    saveSuccess: "配置已保存",
+    saved: "配置已保存",
+    saveFailed: "保存失败",
+    envFallback: "环境变量兜底",
+    envFallbackDesc: "若未配置任何模型，将使用 .env 中的 LLM_* 变量。",
+    noProfiles: "尚未配置模型，请添加至少一个诊断模型。",
+  },
+} as const;
+
+export function statusLabel(status: string): string {
+  return (zh.status as Record<string, string>)[status] ?? status;
+}
+
+export function severityLabel(severity: string): string {
+  return (zh.severity as Record<string, string>)[severity] ?? severity;
+}
+
+export function formatDateTime(iso: string): string {
+  return new Date(iso).toLocaleString("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+export function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("zh-CN");
+}
