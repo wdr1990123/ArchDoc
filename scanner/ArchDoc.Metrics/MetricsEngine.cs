@@ -27,6 +27,33 @@ public static class MetricsEngine
 
         DetectCycles(result, adjacency);
         DetectLayerViolations(result);
+        DetectHighFanout(result);
+    }
+
+    public static void DetectHighFanout(ScanResult result)
+    {
+        var outgoing = result.Dependencies
+            .GroupBy(d => d.From)
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        foreach (var mod in result.Modules)
+        {
+            var fanout = outgoing.GetValueOrDefault(mod.Id);
+            if (fanout >= 5)
+            {
+                result.Metrics.Add(new ScanMetric { ModuleId = mod.Id, Code = "M06", Value = fanout });
+            }
+            if (fanout >= 8)
+            {
+                result.Issues.Add(new ScanIssue
+                {
+                    RuleId = "HIGH_FANOUT",
+                    Severity = fanout >= 12 ? "high" : "medium",
+                    ModuleIds = [mod.Id],
+                    Message = $"High fan-out: {mod.Name} depends on {fanout} modules"
+                });
+            }
+        }
     }
 
     private static void DetectCycles(ScanResult result, Dictionary<string, List<string>> adjacency)

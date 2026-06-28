@@ -1,0 +1,133 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://archdoc.local/schemas/report/v2.1",
+  "title": "ArchDoc AI Governance Report",
+  "description": "DDD governance action plan report (v2.1)",
+  "type": "object",
+  "required": ["summary", "risks", "quick_wins", "refactoring_recommendations"],
+  "properties": {
+    "report_version": { "type": "string", "enum": ["2.0", "2.1"] },
+    "summary": { "type": "string", "minLength": 1 },
+    "executive_summary": {
+      "type": "object",
+      "properties": {
+        "governance_verdict": { "enum": ["proceed", "watch", "intervene"] },
+        "phase_goals": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["phase", "goal"],
+            "properties": {
+              "phase": { "enum": ["short", "mid", "long"] },
+              "goal": { "type": "string" }
+            }
+          }
+        },
+        "top_actions": { "type": "array" },
+        "ddd_boundary_conclusion": { "type": "string" },
+        "defer_items": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "governance_plan": {
+      "type": "object",
+      "properties": {
+        "phases": { "type": "array" },
+        "actions": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/governance_action" },
+          "minItems": 1
+        },
+        "strategy_notes": { "type": "string" }
+      }
+    },
+    "ddd_governance": {
+      "type": "object",
+      "properties": {
+        "subdomain_landscape": { "type": "array" },
+        "bounded_contexts": {
+          "type": "array",
+          "minItems": 2
+        },
+        "context_map": { "type": "array" },
+        "aggregates": { "type": "array" },
+        "modeling_gaps": { "type": "array" },
+        "strategy_notes": { "type": "string" }
+      }
+    },
+    "module_ddd_profile": { "type": "object" },
+    "module_intent": { "type": "object" },
+    "risks": { "type": "array" },
+    "quick_wins": { "type": "array" },
+    "refactoring_recommendations": { "type": "array" }
+  },
+  "definitions": {
+    "evidence_item": {
+      "type": "object",
+      "required": ["ref", "label", "kind"],
+      "properties": {
+        "ref": { "type": "string" },
+        "label": { "type": "string" },
+        "kind": { "enum": ["fact", "inference"] },
+        "confidence": { "enum": ["high", "medium", "low"] }
+      }
+    },
+    "governance_action": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "category",
+        "description",
+        "rationale",
+        "priority",
+        "impact",
+        "effort",
+        "target_phase",
+        "acceptance_criteria",
+        "evidence"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^GA-[0-9]{3}$" },
+        "title": { "type": "string" },
+        "category": {
+          "enum": [
+            "architecture",
+            "application",
+            "technical_debt",
+            "boundary",
+            "dependency",
+            "ddd_context",
+            "ddd_aggregate",
+            "ddd_integration"
+          ]
+        },
+        "priority": { "enum": ["urgent", "important", "normal"] },
+        "impact": { "enum": ["high", "medium", "low"] },
+        "effort": { "enum": ["S", "M", "L"] },
+        "target_phase": { "enum": ["short", "mid", "long"] },
+        "target_modules": { "type": "array", "items": { "type": "string" } },
+        "acceptance_criteria": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "linked_issues": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^issue:" }
+        },
+        "ddd_scope": {
+          "type": "object",
+          "properties": {
+            "bounded_context": { "type": "string" },
+            "aggregate": { "type": "string" },
+            "context_relationship": { "type": "string" }
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/evidence_item" }
+        }
+      }
+    }
+  }
+}

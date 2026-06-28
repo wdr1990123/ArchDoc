@@ -9,6 +9,7 @@ export function apiRequest(
     body?: unknown;
     apiKey?: string | false;
     searchParams?: Record<string, string>;
+    headers?: Record<string, string>;
   }
 ): NextRequest {
   const url = new URL(path, "http://localhost:3000");
@@ -21,6 +22,11 @@ export function apiRequest(
   const headers = new Headers();
   if (options?.apiKey !== false) {
     headers.set("x-api-key", options?.apiKey ?? TEST_API_KEY);
+  }
+  if (options?.headers) {
+    for (const [key, value] of Object.entries(options.headers)) {
+      headers.set(key, value);
+    }
   }
 
   const init: RequestInit = { method, headers };

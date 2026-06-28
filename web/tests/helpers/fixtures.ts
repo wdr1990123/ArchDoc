@@ -96,7 +96,9 @@ export async function createTestFixtures(): Promise<TestFixtures> {
   const snapshotId = snapshotBody.snapshot.id;
 
   const diagnoseRes = await diagnoseScan(
-    apiRequest("POST", `/api/v1/scans/${scanRunId}/diagnose`),
+    apiRequest("POST", `/api/v1/scans/${scanRunId}/diagnose`, {
+      headers: { "X-Diagnose-Sync": "true" },
+    }),
     routeContext({ id: scanRunId })
   );
   const diagnoseBody = (await diagnoseRes.json()) as {

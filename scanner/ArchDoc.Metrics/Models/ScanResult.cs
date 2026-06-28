@@ -13,6 +13,10 @@ public sealed class ScanResult
     public List<ScanMetric> Metrics { get; set; } = new();
     public List<ScanIssue> Issues { get; set; } = new();
     public List<ScanSummary> Summaries { get; set; } = new();
+    public List<ScanNamespaceEntry> Namespaces { get; set; } = new();
+    public List<ScanPublicType> PublicSurface { get; set; } = new();
+    public List<ScanTypeDependency> TypeDependencies { get; set; } = new();
+    public List<ScanFolderLayout> FolderLayout { get; set; } = new();
 }
 
 public sealed class ScanModule
@@ -60,4 +64,35 @@ public sealed class ScanSummary
     public string ModuleId { get; set; } = "";
     public List<string> TopTypes { get; set; } = new();
     public string Snippet { get; set; } = "";
+    public List<string> RoleHints { get; set; } = new();
+}
+
+public sealed class ScanNamespaceEntry
+{
+    public string ModuleId { get; set; } = "";
+    public string Name { get; set; } = "";
+    public int TypeCount { get; set; }
+}
+
+public sealed class ScanPublicType
+{
+    public string ModuleId { get; set; } = "";
+    public string TypeName { get; set; } = "";
+    public string Kind { get; set; } = "class";
+    public List<string> Members { get; set; } = new();
+}
+
+public sealed class ScanTypeDependency
+{
+    public string FromModuleId { get; set; } = "";
+    public string ToModuleId { get; set; } = "";
+    public string FromType { get; set; } = "";
+    public string ToType { get; set; } = "";
+    public int Count { get; set; }
+}
+
+public sealed class ScanFolderLayout
+{
+    public string ModuleId { get; set; } = "";
+    public List<string> Folders { get; set; } = new();
 }

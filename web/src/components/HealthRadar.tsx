@@ -1,6 +1,15 @@
 "use client";
 
-import ReactECharts from "echarts-for-react";
+import dynamic from "next/dynamic";
+
+const ReactECharts = dynamic(() => import("echarts-for-react"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex h-[300px] items-center justify-center text-sm text-slate-400">
+      加载雷达图…
+    </div>
+  ),
+});
 
 interface RadarProps {
   dimensions: string[];

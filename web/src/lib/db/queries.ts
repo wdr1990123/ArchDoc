@@ -145,9 +145,19 @@ async function insertScanResult(
   const moduleIdMap = new Map<string, string>();
 
   for (const mod of payload.modules) {
+    const meta: Record<string, unknown> = {};
+    const summaryForMod = payload.summaries?.find((s) => s.module_id === mod.id);
+    const ns = payload.namespaces?.filter((n) => n.module_id === mod.id) ?? [];
+    const surface = payload.public_surface?.filter((p) => p.module_id === mod.id) ?? [];
+    const folders = payload.folder_layout?.find((f) => f.module_id === mod.id);
+    if (ns.length) meta.namespaces = ns;
+    if (surface.length) meta.public_surface = surface.slice(0, 20);
+    if (folders) meta.folder_layout = folders.folders;
+    if (summaryForMod?.role_hints?.length) meta.role_hints = summaryForMod.role_hints;
+
     const inserted = await client.query<{ id: string }>(
-      `INSERT INTO modules (scan_run_id, external_id, name, kind, loc, layer)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO modules (scan_run_id, external_id, name, kind, loc, layer, metadata)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING id`,
       [
         scanRunId,
@@ -156,6 +166,7 @@ async function insertScanResult(
         mod.kind,
         mod.loc ?? 0,
         mod.layer ?? null,
+        JSON.stringify(meta),
       ]
     );
     moduleIdMap.set(mod.id, inserted.rows[0].id);
@@ -230,7 +241,11 @@ async function insertScanResult(
 export async function ingestScanResult(
   payload: ScanResultPayload
 ): Promise<{ scan_run_id: string }> {
-  if (payload.schema_version !== "1.0") {
+  if (
+    payload.schema_version !== "1.0" &&
+    payload.schema_version !== "1.1" &&
+    payload.schema_version !== "1.2"
+  ) {
     throw new Error(`Unsupported schema version: ${payload.schema_version}`);
   }
   const scanRunId = await withTransaction((client) =>

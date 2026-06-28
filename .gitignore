@@ -17,3 +17,11 @@ scanner/**/obj/
 # OS
 Thumbs.db
 .DS_Store
+scan-result.json
+scan-test-ids.json
+scanner/scan-archdoc.json
+scanner/scan-gitwcs.json
+scanner/scan-imes.json
+
+# AI diagnosis debug logs
+logs/diagnose/

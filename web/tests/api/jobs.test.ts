@@ -37,6 +37,18 @@ describe("POST /api/v1/jobs/poll", () => {
     expect(typeof body.processed).toBe("number");
   });
 
+  it("success: kicks a specific job without blocking", async () => {
+    const fixtures = await createTestFixtures();
+    const res = await pollJobsPost(
+      apiRequest("POST", "/api/v1/jobs/poll", {
+        body: { job_id: fixtures.jobId },
+      })
+    );
+    const body = await expectJson<{ processed: number; kick?: string }>(res, 200);
+    expect(typeof body.processed).toBe("number");
+    expect(["started", "already_running", "not_found"]).toContain(body.kick);
+  });
+
   it("error: missing API key returns 401", async () => {
     const res = await pollJobsPost(
       apiRequest("POST", "/api/v1/jobs/poll", { apiKey: false })

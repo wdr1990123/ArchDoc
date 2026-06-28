@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { zh } from "@/lib/i18n/zh";
 
-export type ScanTab = "overview" | "graph" | "issues";
+export type ScanTab = "overview" | "architecture" | "graph" | "issues";
 
 const TABS: { key: ScanTab; label: string; segment: string }[] = [
   { key: "overview", label: zh.scan.overview, segment: "" },
+  { key: "architecture", label: zh.scan.architecture, segment: "/architecture" },
   { key: "graph", label: zh.scan.graph, segment: "/graph" },
   { key: "issues", label: zh.scan.issues, segment: "/issues" },
 ];

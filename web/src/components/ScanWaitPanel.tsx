@@ -3,14 +3,29 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
-import { apiGet, apiPost } from "@/lib/api/client";
+import { apiGet } from "@/lib/api/client";
+import { runDiagnoseAndWait } from "@/lib/jobs/waitForDiagnose";
 import { zh } from "@/lib/i18n/zh";
+
+/** Accept scans uploaded up to this long before user clicks "wait". */
+const SCAN_LOOKBACK_MS = 10 * 60 * 1000;
+const POLL_INTERVAL_MS = 3000;
+/** Large .NET Framework solutions can take several minutes to scan and upload. */
+const MAX_POLL_ATTEMPTS = 200;
 
 interface ScanWaitPanelProps {
   domainId: string;
   repositoryId: string;
   autoDiagnose?: boolean;
   onScanFound?: (scanId: string) => void;
+}
+
+function lookbackSince(): string {
+  return new Date(Date.now() - SCAN_LOOKBACK_MS).toISOString();
+}
+
+function sinceQuery(since: string | null): string {
+  return since ? `?since=${encodeURIComponent(since)}` : "";
 }
 
 export function ScanWaitPanel({
@@ -23,6 +38,8 @@ export function ScanWaitPanel({
   const [waiting, setWaiting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [existingScanId, setExistingScanId] = useState<string | null>(null);
+  const [pollTick, setPollTick] = useState(0);
   const sinceRef = useRef<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const attemptsRef = useRef(0);
@@ -38,18 +55,16 @@ export function ScanWaitPanel({
   const handleScan = useCallback(
     async (scanId: string) => {
       stopPolling();
+      setExistingScanId(null);
       setMessage(zh.quickStart.scanDetected);
 
       if (autoDiagnose) {
         setMessage(zh.quickStart.diagnosing);
         try {
-          const res = await apiPost<{ report_id?: string }>(
-            `/api/v1/scans/${scanId}/diagnose`,
-            {}
-          );
-          if (res.report_id) {
+          const { reportId } = await runDiagnoseAndWait(scanId);
+          if (reportId) {
             router.push(
-              `/domains/${domainId}/scans/${scanId}/reports/${res.report_id}`
+              `/domains/${domainId}/scans/${scanId}/reports/${reportId}`
             );
             return;
           }
@@ -66,16 +81,17 @@ export function ScanWaitPanel({
 
   const poll = useCallback(async () => {
     attemptsRef.current += 1;
-    if (attemptsRef.current > 40) {
+    setPollTick(attemptsRef.current);
+
+    if (attemptsRef.current > MAX_POLL_ATTEMPTS) {
       stopPolling();
       setError(zh.quickStart.waitTimeout);
       return;
     }
 
     try {
-      const since = sinceRef.current ? `?since=${encodeURIComponent(sinceRef.current)}` : "";
       const res = await apiGet<{ scan: { id: string } | null }>(
-        `/api/v1/repositories/${repositoryId}/scans/latest${since}`
+        `/api/v1/repositories/${repositoryId}/scans/latest${sinceQuery(sinceRef.current)}`
       );
       if (res.scan?.id) {
         await handleScan(res.scan.id);
@@ -85,17 +101,35 @@ export function ScanWaitPanel({
     }
   }, [handleScan, repositoryId, stopPolling]);
 
+  const probeRecentScan = useCallback(async () => {
+    try {
+      const res = await apiGet<{ scan: { id: string } | null }>(
+        `/api/v1/repositories/${repositoryId}/scans/latest${sinceQuery(lookbackSince())}`
+      );
+      setExistingScanId(res.scan?.id ?? null);
+    } catch {
+      setExistingScanId(null);
+    }
+  }, [repositoryId]);
+
   function startWaiting() {
     setError(null);
     setMessage(zh.quickStart.waitingScan);
-    sinceRef.current = new Date().toISOString();
+    sinceRef.current = lookbackSince();
     attemptsRef.current = 0;
+    setPollTick(0);
     setWaiting(true);
     void poll();
-    timerRef.current = setInterval(() => void poll(), 3000);
+    timerRef.current = setInterval(() => void poll(), POLL_INTERVAL_MS);
   }
 
+  useEffect(() => {
+    void probeRecentScan();
+  }, [probeRecentScan]);
+
   useEffect(() => () => stopPolling(), [stopPolling]);
+
+  const waitedSeconds = Math.floor((pollTick * POLL_INTERVAL_MS) / 1000);
 
   return (
     <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
@@ -106,6 +140,15 @@ export function ScanWaitPanel({
         <Button type="button" onClick={startWaiting} disabled={waiting}>
           {waiting ? zh.quickStart.waiting : zh.quickStart.startWait}
         </Button>
+        {existingScanId && !waiting && (
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={() => void handleScan(existingScanId)}
+          >
+            {zh.quickStart.openRecentScan}
+          </Button>
+        )}
         {waiting && (
           <Button type="button" variant="secondary" onClick={stopPolling}>
             {zh.common.cancel}
@@ -113,8 +156,31 @@ export function ScanWaitPanel({
         )}
       </div>
 
+      {waiting && pollTick > 0 && (
+        <p className="mt-2 text-xs text-slate-500">
+          {zh.quickStart.waitProgress(waitedSeconds)}
+        </p>
+      )}
+
+      {existingScanId && !waiting && !error && (
+        <p className="mt-2 text-xs text-emerald-700">{zh.quickStart.scanAlreadyFound}</p>
+      )}
+
       {message && <p className="mt-3 text-sm text-emerald-700">{message}</p>}
-      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+      {error && (
+        <div className="mt-3 space-y-2">
+          <p className="text-sm text-red-600">{error}</p>
+          {existingScanId && (
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => void handleScan(existingScanId)}
+            >
+              {zh.quickStart.openRecentScan}
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

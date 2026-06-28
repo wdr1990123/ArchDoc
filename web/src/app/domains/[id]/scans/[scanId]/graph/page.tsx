@@ -10,8 +10,10 @@ import { zh } from "@/lib/i18n/zh";
 
 export default async function GraphPage({
   params,
+  searchParams,
 }: {
   params: { id: string; scanId: string };
+  searchParams: { highlight?: string };
 }) {
   const domain = await getDomain(params.id);
   if (!domain) notFound();
@@ -45,8 +47,13 @@ export default async function GraphPage({
       <Card>
         <p className="mb-4 text-sm text-slate-600">
           {graph.moduleCount} 个模块 · {graph.edgeCount} 条依赖 · 红色节点表示处于循环依赖中
+          {searchParams.highlight ? " · 蓝色高亮为报告引用模块" : ""}
         </p>
-        <DependencyGraph nodes={graph.nodes} edges={graph.edges} />
+        <DependencyGraph
+          nodes={graph.nodes}
+          edges={graph.edges}
+          highlightModuleId={searchParams.highlight}
+        />
       </Card>
     </div>
   );

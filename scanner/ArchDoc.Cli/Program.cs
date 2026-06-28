@@ -172,7 +172,7 @@ static async Task<string> UploadScanAsync(string apiUrl, string? apiKey, string 
 
 static async Task<string?> TriggerDiagnoseAsync(string apiUrl, string? apiKey, string scanRunId)
 {
-    using var client = CreateApiClient(apiKey);
+    using var client = CreateApiClient(apiKey, timeoutSeconds: 60);
     var response = await client.PostAsync(
         $"{apiUrl.TrimEnd('/')}/scans/{scanRunId}/diagnose",
         new StringContent("{}", Encoding.UTF8, "application/json"));
@@ -184,15 +184,79 @@ static async Task<string?> TriggerDiagnoseAsync(string apiUrl, string? apiKey, s
     using var doc = JsonDocument.Parse(body);
     if (doc.RootElement.TryGetProperty("report_id", out var reportProp))
     {
-        return reportProp.GetString();
+        var immediate = reportProp.GetString();
+        if (!string.IsNullOrEmpty(immediate))
+            return immediate;
     }
 
-    return null;
+    if (!doc.RootElement.TryGetProperty("job_id", out var jobProp))
+        return null;
+
+    var jobId = jobProp.GetString();
+    if (string.IsNullOrWhiteSpace(jobId))
+        return null;
+
+    Console.WriteLine($"Diagnosis job enqueued: {jobId}");
+    return await WaitForDiagnoseJobAsync(apiUrl, apiKey, jobId);
 }
 
-static HttpClient CreateApiClient(string? apiKey)
+static async Task<string?> WaitForDiagnoseJobAsync(string apiUrl, string? apiKey, string jobId)
 {
-    var client = new HttpClient();
+    using var client = CreateApiClient(apiKey, timeoutSeconds: 120);
+    var deadline = DateTime.UtcNow.AddMinutes(10);
+    var pollJson = new StringContent("{}", Encoding.UTF8, "application/json");
+
+    while (DateTime.UtcNow < deadline)
+    {
+        try
+        {
+            await client.PostAsync($"{apiUrl.TrimEnd('/')}/jobs/poll", pollJson);
+        }
+        catch
+        {
+            /* best-effort worker nudge */
+        }
+
+        var statusResponse = await client.GetAsync($"{apiUrl.TrimEnd('/')}/jobs/{jobId}");
+        var statusBody = await statusResponse.Content.ReadAsStringAsync();
+        if (!statusResponse.IsSuccessStatusCode)
+            throw new Exception($"HTTP {(int)statusResponse.StatusCode}: {statusBody}");
+
+        using var statusDoc = JsonDocument.Parse(statusBody);
+        if (!statusDoc.RootElement.TryGetProperty("job", out var jobEl))
+            throw new Exception("job missing in status response");
+
+        var status = jobEl.GetProperty("status").GetString();
+        if (status == "completed")
+        {
+            if (jobEl.TryGetProperty("result", out var resultEl) &&
+                resultEl.TryGetProperty("report_id", out var reportEl))
+            {
+                return reportEl.GetString();
+            }
+            return null;
+        }
+
+        if (status == "failed")
+        {
+            var err = jobEl.TryGetProperty("error_message", out var errEl)
+                ? errEl.GetString()
+                : "Diagnosis failed";
+            throw new Exception(err ?? "Diagnosis failed");
+        }
+
+        await Task.Delay(2000);
+    }
+
+    throw new Exception("Diagnosis timed out after 10 minutes. Check the web UI for report status.");
+}
+
+static HttpClient CreateApiClient(string? apiKey, int timeoutSeconds = 100)
+{
+    var client = new HttpClient
+    {
+        Timeout = TimeSpan.FromSeconds(timeoutSeconds),
+    };
     if (!string.IsNullOrEmpty(apiKey))
         client.DefaultRequestHeaders.Add("X-Api-Key", apiKey);
     return client;

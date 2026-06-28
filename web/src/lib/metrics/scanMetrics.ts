@@ -212,6 +212,17 @@ export async function getPackageRefsForScan(scanRunId: string) {
   );
 }
 
+export async function getModuleDeepFactsForScan(scanRunId: string) {
+  return query<{
+    name: string;
+    layer: string | null;
+    metadata: Record<string, unknown>;
+  }>(
+    `SELECT name, layer, metadata FROM modules WHERE scan_run_id = $1 ORDER BY name`,
+    [scanRunId]
+  );
+}
+
 export function buildEvidenceIndex(
   metrics: { id: string; code: string; module_name: string | null }[],
   issues: DiagnosticIssueRow[]

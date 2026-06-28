@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getScanOverview } from "@/lib/metrics/scanMetrics";
-import { getReportsForScan } from "@/lib/jobs/diagnoseJob";
+import { getReportsForScan, getLatestProjectReport } from "@/lib/jobs/diagnoseJob";
 import { getDomain, getRepositoryForScanRun, getScanRun } from "@/lib/db/queries";
 import { computeStranglerCandidates } from "@/lib/db/federation";
 import { Card, Badge, BackLink } from "@/components/ui";
@@ -26,6 +26,7 @@ export default async function ScanDetailPage({
   const overview = await getScanOverview(params.scanId);
   const repository = await getRepositoryForScanRun(params.scanId);
   const reports = await getReportsForScan(params.scanId);
+  const latestProjectReport = await getLatestProjectReport(params.scanId);
   const strangler = await computeStranglerCandidates(params.scanId);
 
   if (!overview) notFound();
@@ -123,7 +124,17 @@ export default async function ScanDetailPage({
               使用系统设置中的默认诊断模型，可在「系统设置」配置多个模型
             </p>
           </div>
-          <DiagnoseButton scanId={params.scanId} domainId={params.id} />
+          <div className="flex flex-wrap items-center gap-3">
+            <DiagnoseButton scanId={params.scanId} domainId={params.id} />
+            {latestProjectReport && (
+              <Link
+                href={`/domains/${params.id}/scans/${params.scanId}/reports/${latestProjectReport.id}`}
+                className="inline-flex items-center rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-700"
+              >
+                {zh.scan.viewFullReport}
+              </Link>
+            )}
+          </div>
         </div>
         {reports.length > 0 && (
           <ul className="mt-4 space-y-2 border-t border-slate-100 pt-4">
@@ -135,6 +146,7 @@ export default async function ScanDetailPage({
                   className="text-sm text-blue-600 hover:underline"
                 >
                   {formatDateTime(r.created_at)} — {statusLabel(r.status)}
+                  {r.report_type === "module" ? ` (${zh.scan.moduleReport})` : ""}
                 </Link>
               </li>
             ))}

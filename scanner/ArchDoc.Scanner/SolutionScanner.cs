@@ -92,7 +92,8 @@ public sealed class SolutionScanner
                 Id = modId,
                 Name = project.AssemblyName,
                 Kind = "project",
-                Loc = loc
+                Loc = loc,
+                Layer = InferLayerFromProjectName(project.AssemblyName)
             });
 
             if (topTypes.Count > 0)
@@ -159,7 +160,23 @@ public sealed class SolutionScanner
         }
 
         MetricsEngine.Compute(result);
+        DeepAnalysis.Enrich(result, solution, projectIdMap, ct);
+        SummaryEnricher.EnrichSummaries(result);
+        if (result.Summaries.Any(s => s.RoleHints.Count > 0))
+            result.SchemaVersion = "1.2";
+        else if (result.Namespaces.Count > 0 || result.PublicSurface.Count > 0)
+            result.SchemaVersion = "1.1";
         return result;
+    }
+
+    private static string? InferLayerFromProjectName(string name)
+    {
+        var lower = name.ToLowerInvariant();
+        if (lower.Contains(".web") || lower.Contains(".ui") || lower.Contains(".api")) return "ui";
+        if (lower.Contains(".bll") || lower.Contains(".service")) return "bll";
+        if (lower.Contains(".dal") || lower.Contains(".data") || lower.Contains(".repository")) return "dal";
+        if (lower.Contains(".common") || lower.Contains(".shared")) return "common";
+        return null;
     }
 
     public string Serialize(ScanResult result) =>

@@ -36,6 +36,10 @@ export function applyTestEnv() {
   if (!process.env.JOB_WORKER_ENABLED) {
     process.env.JOB_WORKER_ENABLED = "true";
   }
+
+  if (!process.env.DIAGNOSE_LOG_ENABLED) {
+    process.env.DIAGNOSE_LOG_ENABLED = "false";
+  }
 }
 
 export function usesIsolatedTestDatabase(): boolean {

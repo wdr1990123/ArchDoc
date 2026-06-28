@@ -7,9 +7,19 @@ interface GraphProps {
   nodes: Array<{ data: Record<string, unknown> }>;
   edges: Array<{ data: Record<string, unknown> }>;
   height?: number;
+  highlightModuleId?: string;
+  nodeColorKey?: string;
+  edgeLabelKey?: string;
 }
 
-export function DependencyGraph({ nodes, edges, height = 480 }: GraphProps) {
+export function DependencyGraph({
+  nodes,
+  edges,
+  height = 480,
+  highlightModuleId,
+  nodeColorKey,
+  edgeLabelKey,
+}: GraphProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const cyRef = useRef<Core | null>(null);
 
@@ -31,15 +41,28 @@ export function DependencyGraph({ nodes, edges, height = 480 }: GraphProps) {
             "text-valign": "center",
             "text-halign": "center",
             "font-size": "10px",
-            "background-color": "#64748b",
+            "background-color": nodeColorKey ? "data(color)" : "#64748b",
             color: "#fff",
-            width: 40,
-            height: 40,
+            width: nodeColorKey ? 56 : 40,
+            height: nodeColorKey ? 56 : 40,
+            "text-wrap": "wrap",
+            "text-max-width": "80px",
           },
         },
         {
           selector: 'node[?inCycle]',
           style: { "background-color": "#dc2626" },
+        },
+        {
+          selector: "node.highlighted",
+          style: {
+            "background-color": "#2563eb",
+            width: 52,
+            height: 52,
+            "font-size": "11px",
+            "border-width": 3,
+            "border-color": "#1d4ed8",
+          },
         },
         {
           selector: "edge",
@@ -49,17 +72,45 @@ export function DependencyGraph({ nodes, edges, height = 480 }: GraphProps) {
             "target-arrow-color": "#94a3b8",
             "target-arrow-shape": "triangle",
             "curve-style": "bezier",
+            ...(edgeLabelKey
+              ? {
+                  label: `data(${edgeLabelKey})`,
+                  "font-size": "9px",
+                  color: "#475569",
+                  "text-background-color": "#f8fafc",
+                  "text-background-opacity": 0.85,
+                  "text-background-padding": "2px",
+                }
+              : {}),
+          },
+        },
+        {
+          selector: "edge.highlighted",
+          style: {
+            width: 3,
+            "line-color": "#2563eb",
+            "target-arrow-color": "#2563eb",
           },
         },
       ],
       layout: { name: "cose", animate: false, padding: 30 },
     });
 
+    if (highlightModuleId) {
+      const node = cy.getElementById(highlightModuleId);
+      if (node.length > 0) {
+        node.addClass("highlighted");
+        node.connectedEdges().addClass("highlighted");
+        node.neighborhood("node").addClass("highlighted");
+        cy.animate({ center: { eles: node }, zoom: 1.5 }, { duration: 300 });
+      }
+    }
+
     cyRef.current = cy;
     return () => {
       cy.destroy();
     };
-  }, [nodes, edges]);
+  }, [nodes, edges, highlightModuleId, nodeColorKey, edgeLabelKey]);
 
   return (
     <div

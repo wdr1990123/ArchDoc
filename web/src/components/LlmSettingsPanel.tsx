@@ -32,7 +32,7 @@ function emptyProfile(preset?: (typeof PRESETS)[0]): LlmProfile {
     baseUrl: preset?.baseUrl ?? "https://api.openai.com/v1",
     apiKey: "",
     model: preset?.model ?? "gpt-4o",
-    maxTokens: 4096,
+    maxTokens: 16384,
     enabled: true,
     role: "diagnosis",
     isDefault: false,

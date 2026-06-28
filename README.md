@@ -1,6 +1,18 @@
 # ArchDoc
 
-面向 .NET 多仓库/多服务的**架构诊断平台**：Roslyn 静态扫描提取代码事实，PostgreSQL 存储指标与依赖关系，OpenAI 兼容 LLM 生成带证据链的重构与绞杀者迁移建议。
+面向 .NET 多仓库/多服务的**架构诊断平台**：Roslyn 静态扫描提取可验证的代码事实，PostgreSQL 存储指标与依赖关系，OpenAI 兼容 LLM 生成带证据链的**架构治理行动方案**（限界上下文、治理行动台账、绞杀者路线）。
+
+## 核心能力
+
+| 能力 | 说明 |
+|------|------|
+| 静态扫描 | 模块依赖、耦合指标（Ce/Ca）、分层违规、循环依赖 |
+| 深读分析 | scan-result schema 1.1+：Public API、命名空间、God Class 等 |
+| 项目级报告 | Report 2.1：治理摘要 → DDD 上下文 → 行动台账 → 诊断附录 |
+| 模块级报告 | 单模块业务意图、聚合候选、边界治理建议 |
+| 证据可验证 | 报告条目可点击跳转 Issue / 依赖 / 类型等事实来源 |
+| 绞杀者候选 | Top 5 拆分评分 + 分阶段迁移路线 |
+| 多仓联邦 | 跨仓库快照与联邦依赖图（Phase 3，待端到端验收） |
 
 ## 技术栈
 
@@ -70,25 +82,58 @@ dotnet run --project ArchDoc.Cli -- \
   --output scan-result.json
 ```
 
+**简化用法**（自动注册仓库，无需预先复制 UUID）：
+
+```powershell
+dotnet run --project ArchDoc.Cli -- `
+  --solution D:\path\to\Your.sln `
+  --domain-id <诊断项目UUID> `
+  --repo-name "MyRepo" `
+  --api-url http://localhost:3000/api/v1 `
+  --api-key dev-secret-key `
+  --diagnose
+```
+
 ## 使用流程
 
-1. 首页创建**诊断项目**
+### 标准流程
+
+1. 首页创建**诊断项目**（或使用 `/quick-start` 快速开始向导）
 2. 进入诊断项目 → **代码仓库** → 添加仓库，复制仓库 ID
-3. 本地运行 `archdoc-scan` 扫描并上传
-4. 查看健康分、雷达图、依赖图、问题清单
+3. 本地运行 Scanner 扫描并上传
+4. 查看健康分、雷达图、**架构结构**、依赖图、问题清单
 5. 点击 **生成 AI 诊断报告**（需配置 LLM）
+6. 在报告页查看治理行动方案；Issues 页可看到关联的治理行动
+
+### 模块级报告
+
+在扫描概览或架构结构页，对单个模块点击 **模块诊断**，生成该模块的业务意图与 DDD 边界治理报告（需项目已配置 LLM）。
 
 ## 主要页面
 
 | 路由 | 功能 |
 |------|------|
 | `/` | 诊断项目列表 |
+| `/quick-start` | 3 步快速开始（创建 → 扫描 → 查看） |
 | `/domains/[id]` | 诊断项目详情、跨仓库快照 |
 | `/domains/[id]/repositories` | 仓库管理 |
-| `/domains/[id]/scans/[scanId]` | 扫描概览、AI 诊断 |
+| `/domains/[id]/scans/[scanId]` | 扫描概览、AI 诊断入口 |
+| `/domains/[id]/scans/[scanId]/architecture` | 分层结构、模块职责、模块诊断 |
 | `/domains/[id]/scans/[scanId]/graph` | Cytoscape 依赖图 |
-| `/domains/[id]/scans/[scanId]/issues` | 架构问题清单 |
+| `/domains/[id]/scans/[scanId]/issues` | 架构问题清单（含关联治理行动） |
+| `/domains/[id]/scans/[scanId]/reports/[reportId]` | AI 报告（项目 / 模块） |
+| `/domains/[id]/federation` | 跨仓联邦依赖图 |
 | `/settings` | 系统设置、LLM 多模型配置 |
+
+## 报告规格
+
+| 版本 | 说明 | Schema |
+|------|------|--------|
+| scan-result 1.1+ | 扫描产物，含 public_surface、深读指标 | [scan-result.schema.json](packages/scan-result.schema.json) |
+| Report 2.0 | 可验证架构解读（结构事实 + 模块职责 + Issue 解读） | — |
+| Report 2.1 | DDD 治理行动方案（executive_summary、governance_plan、ddd_governance） | [report.schema.json](packages/report.schema.json) |
+
+设计原则：**Facts First**（70% 来自 Scanner）、**Structure Before Opinion**、**Click to Verify**。
 
 ## API
 
@@ -101,25 +146,33 @@ dotnet run --project ArchDoc.Cli -- \
 | `GET/PUT /settings/llm` | 读取/保存模型配置 |
 | `POST /settings/llm/test` | 测试指定模型 |
 | `POST /domains` | 创建诊断项目 |
+| `POST /domains/quick-start` | 一次创建诊断项目 + 仓库 |
 | `DELETE /domains/:id` | 删除诊断项目（级联删除下属数据） |
 | `POST /repositories` | 注册仓库 |
 | `POST /scans/upload` | 上传扫描结果 |
-| `POST /scans/:id/diagnose` | 触发 AI 诊断 |
+| `POST /scans/:id/diagnose` | 触发 AI 诊断（`report_type`: `project` \| `module`） |
 | `POST /domains/:id/snapshot` | 创建跨仓库快照 |
 | `GET /jobs/poll` | 后台任务轮询（可 cron 调用） |
-
-扫描结果 JSON Schema：[packages/scan-result.schema.json](packages/scan-result.schema.json)
+| `GET /jobs/:id` | 查询单个 job 状态 |
 
 ## 项目结构
 
 ```
 ArchDoc/
-├── web/          # Next.js 前端 + REST API
-├── scanner/      # .NET Roslyn 扫描 CLI
-├── db/           # PostgreSQL 迁移脚本
-├── packages/     # 扫描契约 Schema
-├── docs/         # 架构与部署文档
-└── scripts/      # 工具脚本（含 transcript 恢复）
+├── web/                    # Next.js 前端 + REST API
+│   ├── src/lib/governance/ # 治理行动合并、DDD 关联、模块意图汇总
+│   ├── src/lib/metrics/    # structureFacts、moduleContextPack
+│   └── tests/              # Vitest API + 单元测试
+├── scanner/                # .NET Roslyn 扫描 CLI
+├── db/                     # PostgreSQL 迁移脚本
+├── packages/               # JSON Schema 契约
+│   ├── scan-result.schema.json
+│   └── report.schema.json
+├── docs/
+│   ├── MASTER_PLAN.md      # 完整方案 + 进度追踪（Living Document）
+│   ├── ARCHITECTURE.md
+│   └── DEPLOYMENT.md
+└── scripts/                # 工具脚本
 ```
 
 ## 部署
@@ -128,14 +181,28 @@ ArchDoc/
 
 架构说明见 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)。
 
+**完整方案与进度追踪**见 [docs/MASTER_PLAN.md](docs/MASTER_PLAN.md)（Living Document，沟通调整方案时同步更新）。
+
 ## 开发命令
 
 ```bash
 # Web
-cd web && npm run dev      # 开发
-cd web && npm run build    # 生产构建
-cd web && npm run db:init   # 初始化数据库
+cd web && npm run dev          # 开发
+cd web && npm run build        # 生产构建
+cd web && npm run db:init      # 初始化数据库
+cd web && npm run test:api     # Vitest（API + 单元测试）
 
 # Scanner
 cd scanner && dotnet build -c Release
 ```
+
+## 当前进度（摘要）
+
+| 阶段 | 状态 |
+|------|------|
+| Phase 0–2 MVP | ✅ 已验收 |
+| Phase 2.5 Report V2（结构页、模块报告、Scanner 深读） | ✅ |
+| Report 2.1 治理行动方案 | ✅ |
+| Phase 3 多仓联邦 | 代码已有，待端到端验收 |
+
+详情见 [docs/MASTER_PLAN.md](docs/MASTER_PLAN.md) §15。
