@@ -20,6 +20,13 @@ export async function getDomain(id: string): Promise<DiagnosisDomain | null> {
   );
 }
 
+export async function findDomainByName(name: string): Promise<DiagnosisDomain | null> {
+  return queryOne<DiagnosisDomain>(
+    `SELECT * FROM diagnosis_domains WHERE LOWER(TRIM(name)) = LOWER(TRIM($1)) LIMIT 1`,
+    [name]
+  );
+}
+
 export async function createDomain(
   name: string,
   description?: string
@@ -32,6 +39,14 @@ export async function createDomain(
   );
   if (!row) throw new Error("Failed to create domain");
   return row;
+}
+
+export async function deleteDomain(id: string): Promise<boolean> {
+  const row = await queryOne<{ id: string }>(
+    `DELETE FROM diagnosis_domains WHERE id = $1 RETURNING id`,
+    [id]
+  );
+  return row !== null;
 }
 
 export async function listRepositoriesByDomain(
@@ -241,4 +256,64 @@ export async function getDomainForScanRun(scanRunId: string) {
      WHERE sr.id = $1`,
     [scanRunId]
   );
+}
+
+export async function quickStartDiagnosis(input: {
+  name: string;
+  description?: string;
+  repo_name: string;
+  solution_path: string;
+}): Promise<{ domain: DiagnosisDomain; repository: Repository }> {
+  const existing = await findDomainByName(input.name);
+  if (existing) {
+    const err = new Error("DOMAIN_EXISTS");
+    throw err;
+  }
+
+  const domain = await createDomain(input.name, input.description);
+  const repository = await createRepository({
+    domain_id: domain.id,
+    name: input.repo_name,
+    solution_path: input.solution_path,
+    source_type: "local",
+  });
+
+  return { domain, repository };
+}
+
+export async function getDomainProgress(domainId: string): Promise<{
+  hasRepository: boolean;
+  hasScan: boolean;
+  hasDiagnosis: boolean;
+  latestScanId: string | null;
+  latestRepositoryId: string | null;
+  latestRepository: Repository | null;
+  repositoryCount: number;
+  scanCount: number;
+  reportCount: number;
+}> {
+  const repositories = await listRepositoriesByDomain(domainId);
+  const scans = await listScanRunsByDomain(domainId);
+  const completedScans = scans.filter((s) => s.status === "completed");
+
+  const reportRow = await queryOne<{ count: string }>(
+    `SELECT COUNT(*)::text AS count
+     FROM diagnostic_reports dr
+     JOIN scan_runs sr ON sr.id = dr.scan_run_id
+     JOIN repositories r ON r.id = sr.repository_id
+     WHERE r.domain_id = $1 AND dr.status IN ('completed', 'partial')`,
+    [domainId]
+  );
+
+  return {
+    hasRepository: repositories.length > 0,
+    hasScan: completedScans.length > 0,
+    hasDiagnosis: Number(reportRow?.count ?? 0) > 0,
+    latestScanId: completedScans[0]?.id ?? null,
+    latestRepositoryId: repositories[0]?.id ?? null,
+    latestRepository: repositories[0] ?? null,
+    repositoryCount: repositories.length,
+    scanCount: completedScans.length,
+    reportCount: Number(reportRow?.count ?? 0),
+  };
 }

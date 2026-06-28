@@ -5,7 +5,8 @@ import { zh } from "@/lib/i18n/zh";
 
 export function AppNav() {
   const links = [
-    { href: "/", label: zh.nav.domains },
+    { href: "/", label: zh.nav.home },
+    { href: "/quick-start", label: zh.nav.quickStart },
     { href: "/settings", label: zh.nav.settings },
   ];
 

@@ -17,20 +17,29 @@ export function createProviderFromProfile(profile: LlmProfile): LlmProvider {
 
   return {
     async chat(messages: LlmMessage[], options?: { json?: boolean }) {
-      const response = await fetch(`${profile.baseUrl.replace(/\/$/, "")}/chat/completions`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${profile.apiKey}`,
-        },
-        body: JSON.stringify({
-          model: profile.model,
-          messages,
-          max_tokens: profile.maxTokens,
-          temperature: 0.2,
-          ...(options?.json ? { response_format: { type: "json_object" } } : {}),
-        }),
-      });
+      const url = `${profile.baseUrl.replace(/\/$/, "")}/chat/completions`;
+      let response: Response;
+      try {
+        response = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${profile.apiKey}`,
+          },
+          body: JSON.stringify({
+            model: profile.model,
+            messages,
+            max_tokens: profile.maxTokens,
+            temperature: 0.2,
+            ...(options?.json ? { response_format: { type: "json_object" } } : {}),
+          }),
+        });
+      } catch (error) {
+        const detail = error instanceof Error ? error.message : "未知错误";
+        throw new Error(
+          `无法连接 LLM 服务 (${profile.name}, ${url}): ${detail}。请检查 Base URL、网络与 API Key。`
+        );
+      }
 
       if (!response.ok) {
         const text = await response.text();
@@ -49,7 +58,7 @@ function createMockProvider(name: string): LlmProvider {
   return {
     async chat() {
       return JSON.stringify({
-        summary: `模拟诊断：模型「${name}」未配置 API Key，请在系统设置中完善配置。`,
+        summary: `模拟诊断：模型「${name}」未配置 API Key，请在系统设置中完善配置后重新生成报告。`,
         risks: [],
         quick_wins: [],
         refactoring_recommendations: [],

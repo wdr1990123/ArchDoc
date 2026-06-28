@@ -20,7 +20,7 @@ export function DomainActions({
   scanRuns: ScanRunRow[];
 }) {
   const router = useRouter();
-  const [snapshotName, setSnapshotName] = useState("联邦快照");
+  const [snapshotName, setSnapshotName] = useState("跨仓库快照");
   const [selected, setSelected] = useState<string[]>([]);
   const [message, setMessage] = useState<string | null>(null);
 

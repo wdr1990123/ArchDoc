@@ -19,10 +19,34 @@ public sealed class SolutionScanner
 
     public async Task<ScanResult> ScanAsync(string solutionPath, string repositoryId, CancellationToken ct = default)
     {
+        try
+        {
+            return await ScanWithMsBuildAsync(solutionPath, repositoryId, ct);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[archdoc] MSBuild scan failed: {ex.Message}");
+            Console.Error.WriteLine("[archdoc] Falling back to legacy .NET Framework project parser...");
+            return LegacySolutionScanner.Scan(solutionPath, repositoryId);
+        }
+    }
+
+    private async Task<ScanResult> ScanWithMsBuildAsync(
+        string solutionPath,
+        string repositoryId,
+        CancellationToken ct)
+    {
         MSBuildLocator.RegisterDefaults();
 
         using var workspace = MSBuildWorkspace.Create();
         var solution = await workspace.OpenSolutionAsync(solutionPath, cancellationToken: ct);
+
+        foreach (var diag in workspace.Diagnostics)
+            Console.Error.WriteLine($"[workspace] {diag.Kind}: {diag.Message}");
+
+        if (!solution.Projects.Any(p => p.Language == LanguageNames.CSharp))
+            throw new InvalidOperationException(
+                "No C# projects loaded from solution. Check MSBuild/SDK installation and workspace diagnostics above.");
 
         var result = new ScanResult
         {

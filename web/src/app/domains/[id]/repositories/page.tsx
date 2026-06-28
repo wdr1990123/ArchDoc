@@ -1,9 +1,11 @@
-import { BackLink, PageHeader } from "@/components/ui";
-import { getDomain } from "@/lib/db/queries";
+import { BackLink, PageHeader, Card } from "@/components/ui";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { getDomain, listRepositoriesByDomain } from "@/lib/db/queries";
 import { notFound } from "next/navigation";
-import { Card } from "@/components/ui";
 import { AddRepositoryForm } from "./AddRepositoryForm";
+import { RepositoryScanPanel } from "./RepositoryScanPanel";
 import { zh } from "@/lib/i18n/zh";
+import { domainCrumb, homeCrumb } from "@/lib/nav/breadcrumbs";
 
 export default async function RepositoriesPage({
   params,
@@ -13,27 +15,46 @@ export default async function RepositoriesPage({
   const domain = await getDomain(params.id);
   if (!domain) notFound();
 
+  const repositories = await listRepositoriesByDomain(params.id);
+
   return (
     <div className="space-y-8">
+      <Breadcrumbs
+        items={[
+          homeCrumb(),
+          domainCrumb(params.id, domain.name),
+          { label: zh.repo.title },
+        ]}
+      />
       <BackLink href={`/domains/${params.id}`}>{zh.repo.back}</BackLink>
       <PageHeader
         title={zh.repo.title}
-        description={`诊断域：${domain.name}`}
+        description={`${zh.domain.label}：${domain.name}`}
       />
 
-      <AddRepositoryForm domainId={params.id} />
+      <div id="add" className="scroll-mt-8">
+        <AddRepositoryForm domainId={params.id} />
+      </div>
 
-      <Card>
-        <h2 className="font-semibold text-slate-900">{zh.repo.scannerTitle}</h2>
-        <p className="mt-1 text-sm text-slate-600">{zh.repo.scannerDesc}</p>
-        <pre className="mt-4 overflow-x-auto rounded-lg bg-slate-900 p-4 text-xs leading-relaxed text-slate-100">
-{`dotnet run --project ArchDoc.Cli -- ^
-  --solution .\\YourSolution.sln ^
-  --repository-id <仓库UUID> ^
-  --api-url http://localhost:3000/api/v1 ^
-  --api-key dev-secret-key`}
-        </pre>
-      </Card>
+      <div id="scan" className="scroll-mt-8 space-y-6">
+        {repositories.length === 0 && (
+          <p className="text-sm text-slate-500">请先添加上方代码仓库，再执行扫描。</p>
+        )}
+        {repositories.map((repo) => (
+          <Card key={repo.id} id={`repo-${repo.id}`} className="scroll-mt-8">
+            <h3 className="font-semibold text-slate-900">{repo.name}</h3>
+            <p className="mt-1 break-all font-mono text-xs text-slate-500">{repo.id}</p>
+            <div className="mt-4">
+              <RepositoryScanPanel
+                domainId={params.id}
+                repositoryId={repo.id}
+                solutionPath={repo.solution_path ?? ""}
+                repoName={repo.name}
+              />
+            </div>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }

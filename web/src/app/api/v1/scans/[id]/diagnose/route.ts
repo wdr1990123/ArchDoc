@@ -7,7 +7,7 @@ import {
   unauthorizedResponse,
 } from "@/lib/api/helpers";
 import { getScanRun } from "@/lib/db/queries";
-import { enqueueDiagnoseJob, pollAndProcessJobs, getJob } from "@/lib/jobs/diagnoseJob";
+import { enqueueDiagnoseJob, processJobById, getJob } from "@/lib/jobs/diagnoseJob";
 
 export async function POST(
   request: NextRequest,
@@ -21,10 +21,17 @@ export async function POST(
   try {
     const jobId = await enqueueDiagnoseJob(params.id);
     let reportId: string | undefined;
+    let jobError: string | undefined;
     if (process.env.JOB_WORKER_ENABLED !== "false") {
-      await pollAndProcessJobs(`inline-${Date.now()}`);
+      await processJobById(jobId, `inline-${Date.now()}`);
       const job = await getJob(jobId);
       reportId = (job?.result as { report_id?: string })?.report_id;
+      if (job?.status === "failed") {
+        jobError = job.error_message ?? "Diagnosis failed";
+      }
+    }
+    if (jobError) {
+      return serverError(jobError);
     }
     return jsonOk({ job_id: jobId, report_id: reportId, message: "Diagnosis completed" }, 202);
   } catch (error) {

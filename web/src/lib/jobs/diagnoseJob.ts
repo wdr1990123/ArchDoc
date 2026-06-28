@@ -106,7 +106,7 @@ export async function processDiagnoseJob(scanRunId: string): Promise<string> {
           { role: "assistant", content: raw },
           {
             role: "user",
-            content: `Fix evidence_refs. Errors: ${validation.errors.join("; ")}. Return corrected JSON only.`,
+            content: `请修正 evidence_refs。错误：${validation.errors.join("；")}。仅返回修正后的 JSON，内容字段保持简体中文。`,
           },
         ],
         { json: true }
@@ -160,14 +160,57 @@ export async function processDiagnoseJob(scanRunId: string): Promise<string> {
   }
 }
 
+type QueuedJob = {
+  id: string;
+  kind: string;
+  payload: { scan_run_id?: string };
+  attempts: number;
+  max_attempts: number;
+};
+
+async function executeQueuedJob(job: QueuedJob): Promise<void> {
+  try {
+    if (job.kind === "ai_diagnose" && job.payload.scan_run_id) {
+      const reportId = await processDiagnoseJob(job.payload.scan_run_id);
+      await query(
+        `UPDATE job_queue SET status = 'completed', result = $2, completed_at = now() WHERE id = $1`,
+        [job.id, JSON.stringify({ report_id: reportId })]
+      );
+    } else {
+      throw new Error(`Unknown job kind: ${job.kind}`);
+    }
+  } catch (error) {
+    const failed = job.attempts >= job.max_attempts;
+    await query(
+      `UPDATE job_queue SET status = $2, error_message = $3, completed_at = CASE WHEN $4 THEN now() ELSE NULL END WHERE id = $1`,
+      [
+        job.id,
+        failed ? "failed" : "pending",
+        error instanceof Error ? error.message : "Unknown",
+        failed,
+      ]
+    );
+  }
+}
+
+/** Process a specific enqueued job (used by diagnose API so clicks are not blocked by older queue items). */
+export async function processJobById(jobId: string, workerId: string): Promise<boolean> {
+  const job = await queryOne<QueuedJob>(
+    `UPDATE job_queue
+     SET status = 'running', locked_at = now(), locked_by = $2, attempts = attempts + 1
+     WHERE id = $1 AND status = 'pending' AND attempts < max_attempts
+     RETURNING id, kind, payload, attempts, max_attempts`,
+    [jobId, workerId]
+  );
+
+  if (!job) return false;
+
+  await executeQueuedJob(job);
+  return true;
+}
+
 export async function pollAndProcessJobs(workerId: string): Promise<number> {
-  const job = await queryOne<{
-    id: string;
-    kind: string;
-    payload: { scan_run_id?: string };
-    attempts: number;
-    max_attempts: number;
-  }>(
+  const job = await queryOne<QueuedJob>(
     `UPDATE job_queue
      SET status = 'running', locked_at = now(), locked_by = $1, attempts = attempts + 1
      WHERE id = (
@@ -183,30 +226,8 @@ export async function pollAndProcessJobs(workerId: string): Promise<number> {
 
   if (!job) return 0;
 
-  try {
-    if (job.kind === "ai_diagnose" && job.payload.scan_run_id) {
-      const reportId = await processDiagnoseJob(job.payload.scan_run_id);
-      await query(
-        `UPDATE job_queue SET status = 'completed', result = $2, completed_at = now() WHERE id = $1`,
-        [job.id, JSON.stringify({ report_id: reportId })]
-      );
-    } else {
-      throw new Error(`Unknown job kind: ${job.kind}`);
-    }
-    return 1;
-  } catch (error) {
-    const failed = job.attempts >= job.max_attempts;
-    await query(
-      `UPDATE job_queue SET status = $2, error_message = $3, completed_at = CASE WHEN $4 THEN now() ELSE NULL END WHERE id = $1`,
-      [
-        job.id,
-        failed ? "failed" : "pending",
-        error instanceof Error ? error.message : "Unknown",
-        failed,
-      ]
-    );
-    return 1;
-  }
+  await executeQueuedJob(job);
+  return 1;
 }
 
 export async function getReport(reportId: string) {

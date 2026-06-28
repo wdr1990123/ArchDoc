@@ -4,6 +4,7 @@ import {
   parseJsonBody,
   validateApiKey,
   unauthorizedResponse,
+  badRequest,
 } from "@/lib/api/helpers";
 import {
   getLlmSettings,
@@ -27,14 +28,24 @@ export async function GET() {
 export async function PUT(request: NextRequest) {
   if (!validateApiKey(request)) return unauthorizedResponse();
 
-  const body = await parseJsonBody<{ settings: LlmSettings }>(request);
-  const resolved = await resolveProfilesForSave(body.settings);
-  await saveLlmSettings(resolved);
+  try {
+    const body = await parseJsonBody<{ settings?: LlmSettings } & LlmSettings>(request);
+    const incoming = body.settings ?? body;
+    if (!incoming?.profiles || !Array.isArray(incoming.profiles)) {
+      return badRequest("请提供 settings.profiles 配置");
+    }
 
-  return jsonOk({
-    settings: {
-      ...resolved,
-      profiles: resolved.profiles.map(sanitizeProfileForClient),
-    },
-  });
+    const resolved = await resolveProfilesForSave(incoming);
+    await saveLlmSettings(resolved);
+
+    return jsonOk({
+      settings: {
+        ...resolved,
+        profiles: resolved.profiles.map(sanitizeProfileForClient),
+      },
+    });
+  } catch (e) {
+    console.error("PUT /settings/llm failed:", e);
+    throw e;
+  }
 }

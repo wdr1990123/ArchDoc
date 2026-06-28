@@ -72,8 +72,8 @@ dotnet run --project ArchDoc.Cli -- \
 
 ## 使用流程
 
-1. 首页创建**诊断域**
-2. 进入诊断域 → **代码仓库** → 添加仓库，复制仓库 ID
+1. 首页创建**诊断项目**
+2. 进入诊断项目 → **代码仓库** → 添加仓库，复制仓库 ID
 3. 本地运行 `archdoc-scan` 扫描并上传
 4. 查看健康分、雷达图、依赖图、问题清单
 5. 点击 **生成 AI 诊断报告**（需配置 LLM）
@@ -82,8 +82,8 @@ dotnet run --project ArchDoc.Cli -- \
 
 | 路由 | 功能 |
 |------|------|
-| `/` | 诊断域列表 |
-| `/domains/[id]` | 诊断域详情、联邦快照 |
+| `/` | 诊断项目列表 |
+| `/domains/[id]` | 诊断项目详情、跨仓库快照 |
 | `/domains/[id]/repositories` | 仓库管理 |
 | `/domains/[id]/scans/[scanId]` | 扫描概览、AI 诊断 |
 | `/domains/[id]/scans/[scanId]/graph` | Cytoscape 依赖图 |
@@ -100,11 +100,12 @@ dotnet run --project ArchDoc.Cli -- \
 | `GET /health/llm` | LLM 连接测试 |
 | `GET/PUT /settings/llm` | 读取/保存模型配置 |
 | `POST /settings/llm/test` | 测试指定模型 |
-| `POST /domains` | 创建诊断域 |
+| `POST /domains` | 创建诊断项目 |
+| `DELETE /domains/:id` | 删除诊断项目（级联删除下属数据） |
 | `POST /repositories` | 注册仓库 |
 | `POST /scans/upload` | 上传扫描结果 |
 | `POST /scans/:id/diagnose` | 触发 AI 诊断 |
-| `POST /domains/:id/snapshot` | 创建联邦快照 |
+| `POST /domains/:id/snapshot` | 创建跨仓库快照 |
 | `GET /jobs/poll` | 后台任务轮询（可 cron 调用） |
 
 扫描结果 JSON Schema：[packages/scan-result.schema.json](packages/scan-result.schema.json)

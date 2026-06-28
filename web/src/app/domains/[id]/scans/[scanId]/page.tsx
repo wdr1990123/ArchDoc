@@ -2,11 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getScanOverview } from "@/lib/metrics/scanMetrics";
 import { getReportsForScan } from "@/lib/jobs/diagnoseJob";
-import { getRepositoryForScanRun, getScanRun } from "@/lib/db/queries";
+import { getDomain, getRepositoryForScanRun, getScanRun } from "@/lib/db/queries";
 import { computeStranglerCandidates } from "@/lib/db/federation";
-import { Card, Badge, BackLink, NavLink } from "@/components/ui";
+import { Card, Badge, BackLink } from "@/components/ui";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { ScanSubNav } from "@/components/ScanSubNav";
 import { HealthRadar } from "@/components/HealthRadar";
 import { DiagnoseButton } from "./DiagnoseButton";
+import { buildScanBreadcrumbs } from "@/lib/nav/breadcrumbs";
 import { zh, severityLabel, statusLabel, formatDateTime } from "@/lib/i18n/zh";
 
 export default async function ScanDetailPage({
@@ -14,6 +17,9 @@ export default async function ScanDetailPage({
 }: {
   params: { id: string; scanId: string };
 }) {
+  const domain = await getDomain(params.id);
+  if (!domain) notFound();
+
   const scan = await getScanRun(params.scanId);
   if (!scan) notFound();
 
@@ -24,24 +30,28 @@ export default async function ScanDetailPage({
 
   if (!overview) notFound();
 
+  const repoName = repository?.name ?? zh.breadcrumb.scan;
+
   return (
     <div className="space-y-8">
+      <Breadcrumbs
+        items={buildScanBreadcrumbs({
+          domainId: params.id,
+          domainName: domain.name,
+          scanId: params.scanId,
+          repositoryName: repoName,
+        })}
+      />
+      <BackLink href={`/domains/${params.id}`}>{zh.scan.back}</BackLink>
+
       <div>
-        <BackLink href={`/domains/${params.id}`}>{zh.scan.back}</BackLink>
-        <h1 className="mt-3 text-2xl font-bold text-slate-900">{zh.scan.overview}</h1>
+        <h1 className="text-2xl font-bold text-slate-900">{zh.scan.overview}</h1>
         <p className="mt-1 text-sm text-slate-600">
           {repository?.name} · {scan.solution_path}
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <NavLink href={`/domains/${params.id}/scans/${params.scanId}/graph`}>
-          {zh.scan.graph}
-        </NavLink>
-        <NavLink href={`/domains/${params.id}/scans/${params.scanId}/issues`}>
-          {zh.scan.issues}
-        </NavLink>
-      </div>
+      <ScanSubNav domainId={params.id} scanId={params.scanId} active="overview" />
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>

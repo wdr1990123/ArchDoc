@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
-import { jsonOk, notFound } from "@/lib/api/helpers";
+import { jsonOk, notFound, unauthorizedResponse, validateApiKey } from "@/lib/api/helpers";
 import {
+  deleteDomain,
   getDomain,
   listRepositoriesByDomain,
   listScanRunsByDomain,
@@ -19,4 +20,14 @@ export async function GET(
   const snapshots = await listDomainSnapshots(params.id);
 
   return jsonOk({ domain, repositories, scanRuns, snapshots });
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  if (!validateApiKey(request)) return unauthorizedResponse();
+  const deleted = await deleteDomain(params.id);
+  if (!deleted) return notFound("Domain not found");
+  return jsonOk({ ok: true });
 }

@@ -1,9 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getDomain, listRepositoriesByDomain, listScanRunsByDomain } from "@/lib/db/queries";
+import { getDomain, listRepositoriesByDomain, listScanRunsByDomain, getDomainProgress } from "@/lib/db/queries";
 import { listDomainSnapshots } from "@/lib/db/federation";
 import { Card, Badge, PageHeader, NavLink, EmptyState } from "@/components/ui";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { DomainProgressBar } from "@/components/DomainProgressBar";
 import { DomainActions } from "./DomainActions";
+import { DeleteDomainButton } from "@/app/DeleteDomainButton";
+import { homeCrumb, domainCrumb } from "@/lib/nav/breadcrumbs";
 import { zh, statusLabel, formatDateTime } from "@/lib/i18n/zh";
 
 export default async function DomainPage({
@@ -17,18 +21,31 @@ export default async function DomainPage({
   const repositories = await listRepositoriesByDomain(params.id);
   const scanRuns = await listScanRunsByDomain(params.id);
   const snapshots = await listDomainSnapshots(params.id);
+  const progress = await getDomainProgress(params.id);
 
   return (
     <div className="space-y-8">
+      <Breadcrumbs items={[homeCrumb(), domainCrumb(params.id, domain.name)]} />
       <PageHeader
         title={domain.name}
         description={domain.description ?? undefined}
       >
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <NavLink href={`/domains/${params.id}/repositories`}>{zh.domain.repos}</NavLink>
           <NavLink href={`/domains/${params.id}/federation`}>{zh.domain.federation}</NavLink>
+          <DeleteDomainButton domainId={params.id} domainName={domain.name} />
         </div>
       </PageHeader>
+
+      <DomainProgressBar
+        progress={{
+          domainId: params.id,
+          hasRepository: progress.hasRepository,
+          hasScan: progress.hasScan,
+          hasDiagnosis: progress.hasDiagnosis,
+          latestScanId: progress.latestScanId,
+        }}
+      />
 
       <DomainActions domainId={params.id} scanRuns={scanRuns} />
 
@@ -60,10 +77,12 @@ export default async function DomainPage({
         </h2>
         <div className="grid gap-3 md:grid-cols-2">
           {repositories.map((r) => (
-            <Card key={r.id}>
-              <p className="font-medium">{r.name}</p>
-              <p className="mt-1 break-all font-mono text-xs text-slate-500">{r.id}</p>
-            </Card>
+            <Link key={r.id} href={`/domains/${params.id}/repositories#repo-${r.id}`}>
+              <Card className="transition hover:border-slate-300 hover:shadow-sm">
+                <p className="font-medium text-slate-900">{r.name}</p>
+                <p className="mt-1 break-all font-mono text-xs text-slate-500">{r.id}</p>
+              </Card>
+            </Link>
           ))}
         </div>
       </section>
@@ -74,12 +93,17 @@ export default async function DomainPage({
             {zh.domain.federationSnapshots}
           </h2>
           {snapshots.map((s) => (
-            <Card key={s.id} className="mb-2 flex items-center justify-between">
-              <p className="font-medium">{s.name}</p>
-              <Badge tone={s.status === "completed" ? "success" : "default"}>
-                {statusLabel(s.status)}
-              </Badge>
-            </Card>
+            <Link
+              key={s.id}
+              href={`/domains/${params.id}/federation?snapshot=${s.id}`}
+            >
+              <Card className="mb-2 flex items-center justify-between transition hover:border-slate-300 hover:shadow-sm">
+                <p className="font-medium text-slate-900">{s.name}</p>
+                <Badge tone={s.status === "completed" ? "success" : "default"}>
+                  {statusLabel(s.status)}
+                </Badge>
+              </Card>
+            </Link>
           ))}
         </section>
       )}

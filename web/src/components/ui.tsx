@@ -49,16 +49,18 @@ export function Button({
   className = "",
 }: {
   children: React.ReactNode;
-  onClick?: () => void;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
   disabled?: boolean;
-  variant?: "primary" | "secondary";
+  variant?: "primary" | "secondary" | "danger";
   type?: "button" | "submit";
   className?: string;
 }) {
   const styles =
     variant === "primary"
       ? "bg-slate-900 text-white hover:bg-slate-800 disabled:bg-slate-400"
-      : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-50";
+      : variant === "danger"
+        ? "border border-red-200 bg-white text-red-700 hover:bg-red-50 disabled:opacity-50"
+        : "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-50";
   return (
     <button
       type={type}

@@ -256,10 +256,10 @@ export async function computeStranglerCandidates(scanRunId: string) {
       ca,
       inCycle,
       rationale: inCycle
-        ? "In circular dependency — resolve cycle before extraction"
+        ? "处于循环依赖中，拆分前需先解除循环"
         : ca <= 2
-          ? "Leaf-like module with low inbound coupling"
-          : "Moderate candidate — review shared dependencies",
+          ? "叶节点模块，入向耦合较低"
+          : "中等候选，需评估共享依赖",
     };
   });
 

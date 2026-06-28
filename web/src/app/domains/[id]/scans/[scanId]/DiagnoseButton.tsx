@@ -3,8 +3,27 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
-import { apiPost } from "@/lib/api/client";
+import { apiGet, apiPost } from "@/lib/api/client";
 import { zh } from "@/lib/i18n/zh";
+
+async function waitForDiagnoseJob(jobId: string, timeoutMs = 180_000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const { job } = await apiGet<{
+      job: {
+        status: string;
+        error_message: string | null;
+        result?: { report_id?: string };
+      };
+    }>(`/api/v1/jobs/${jobId}`);
+    if (job.status === "completed") return job.result?.report_id;
+    if (job.status === "failed") {
+      throw new Error(job.error_message ?? zh.quickStart.diagnoseFailed);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
+  throw new Error("诊断超时，请稍后刷新页面查看是否已生成报告");
+}
 
 export function DiagnoseButton({
   scanId,
@@ -25,8 +44,9 @@ export function DiagnoseButton({
         `/api/v1/scans/${scanId}/diagnose`,
         {}
       );
-      if (res.report_id) {
-        router.push(`/domains/${domainId}/scans/${scanId}/reports/${res.report_id}`);
+      const reportId = res.report_id ?? (await waitForDiagnoseJob(res.job_id));
+      if (reportId) {
+        router.push(`/domains/${domainId}/scans/${scanId}/reports/${reportId}`);
       } else {
         router.refresh();
       }

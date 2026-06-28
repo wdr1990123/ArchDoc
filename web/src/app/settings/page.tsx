@@ -1,7 +1,9 @@
 import dynamic from "next/dynamic";
 import { PageHeader, Card } from "@/components/ui";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { ApiKeyConfig } from "@/components/ApiKeyConfig";
 import { zh } from "@/lib/i18n/zh";
+import { homeCrumb } from "@/lib/nav/breadcrumbs";
 import { checkDbConnection } from "@/lib/db/client";
 import { getLlmSettings, sanitizeProfileForClient } from "@/lib/llm/config";
 
@@ -33,6 +35,7 @@ export default async function SettingsPage() {
 
   return (
     <div className="space-y-8">
+      <Breadcrumbs items={[homeCrumb(), { label: zh.breadcrumb.settings }]} />
       <PageHeader title={zh.settings.title} description="数据库连接、API 密钥与大模型配置" />
 
       <ApiKeyConfig />

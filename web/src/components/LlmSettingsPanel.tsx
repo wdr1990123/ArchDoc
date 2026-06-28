@@ -119,7 +119,7 @@ export function LlmSettingsPanel({
     setSaving(true);
     setMessage(null);
     try {
-      await apiPut("/api/v1/settings/llm", settings);
+      await apiPut("/api/v1/settings/llm", { settings });
       setMessage({ type: "ok", text: zh.settings.saved });
     } catch (e) {
       setMessage({
@@ -136,7 +136,7 @@ export function LlmSettingsPanel({
     try {
       const res = await apiPost<{ ok: boolean; message?: string }>(
         "/api/v1/settings/llm/test",
-        profile
+        { profile }
       );
       setTestResults((prev) => ({
         ...prev,
