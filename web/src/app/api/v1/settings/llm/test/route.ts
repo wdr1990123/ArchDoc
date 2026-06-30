@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     profile = mergeProfileUpdate(existing ?? undefined, body.profile);
   }
 
-  if (!profile) return badRequest("请指�?profileId �?profile 配置");
+  if (!profile) return badRequest("请指定 profileId 或 profile 配置");
 
   const result = await testProfileConnection(profile);
   return jsonOk(result, result.ok ? 200 : 503);
