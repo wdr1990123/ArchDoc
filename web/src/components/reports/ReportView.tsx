@@ -7,9 +7,9 @@ import type {
   GovernanceAction,
   IssueInterpretation,
 } from "@/lib/types";
-import { ContextMapGraph } from "@/components/ContextMapGraph";
-import { EvidencePanel } from "@/components/EvidencePanel";
-import { Badge } from "@/components/ui";
+import { ContextMapGraph } from "@/components/graph/ContextMapGraph";
+import { EvidencePanel } from "@/components/reports/EvidencePanel";
+import { Badge } from "@/components/layout/ui";
 import { severityLabel, zh } from "@/lib/i18n/zh";
 
 const CONFIDENCE_ZH: Record<string, string> = {

@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui";
+import { Button } from "@/components/layout/ui";
 import { apiPost } from "@/lib/api/client";
 import { zh } from "@/lib/i18n/zh";
 import type { ScanResultPayload } from "@/lib/types";

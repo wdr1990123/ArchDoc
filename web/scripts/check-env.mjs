@@ -1,4 +1,7 @@
 import pg from "pg";
+import { loadEnvFiles } from "./lib/load-env.mjs";
+
+loadEnvFiles();
 
 const urls = [
   process.env.DATABASE_URL,

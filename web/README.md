@@ -39,3 +39,25 @@ npm run test:api
 ## 环境变量
 
 见 [.env.example](.env.example)。`.env.local` 已被 git 忽略，请勿提交。
+
+## 目录约定
+
+| 路径 | 说明 |
+|------|------|
+| `src/app/` | 仅保留 `page.tsx`、`layout.tsx` 与 API routes，不放可复用 UI 组件 |
+| `src/components/` | 按功能域分子目录（`layout/`、`domains/`、`scans/` 等） |
+| `src/lib/` | 业务逻辑（见下表） |
+| `scripts/` | 数据库初始化与迁移（`npm run db:init` 等） |
+| 根目录 `scripts/` | 仓库级开发工具（与 web 无关） |
+
+### `src/lib/` 模块
+
+| 目录 | 职责 |
+|------|------|
+| `api/` | REST 辅助函数、浏览器 API 客户端 |
+| `db/` | PostgreSQL 连接、查询、联邦 |
+| `jobs/` | `queue.ts` 任务队列、`diagnosePipeline.ts` 诊断流水线、`reportPersist.ts` |
+| `llm/` | 大模型 Provider、`prompts/`（shared / project / module / markdown / enrich） |
+| `governance/` | `planUtils` / `planBuilder` / `planLinks` / `planFinalize` 治理行动 |
+| `validation/` | `coerce` / `validate` / `evidenceSync` 报告校验 |
+| `types/` | `domain` / `scan` / `report` / `job` 类型定义 |

@@ -32,7 +32,7 @@ export async function PUT(request: NextRequest) {
     const body = await parseJsonBody<{ settings?: LlmSettings } & LlmSettings>(request);
     const incoming = body.settings ?? body;
     if (!incoming?.profiles || !Array.isArray(incoming.profiles)) {
-      return badRequest("请提供 settings.profiles 配置");
+      return badRequest("请提�?settings.profiles 配置");
     }
 
     const resolved = await resolveProfilesForSave(incoming);

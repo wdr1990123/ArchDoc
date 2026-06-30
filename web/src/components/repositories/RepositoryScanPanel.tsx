@@ -1,8 +1,8 @@
 "use client";
 
-import { ScanCommand } from "@/components/ScanCommand";
-import { ScanWaitPanel } from "@/components/ScanWaitPanel";
-import { UploadScanJson } from "@/components/UploadScanJson";
+import { ScanCommand } from "@/components/scans/ScanCommand";
+import { ScanWaitPanel } from "@/components/scans/ScanWaitPanel";
+import { UploadScanJson } from "@/components/scans/UploadScanJson";
 
 export function RepositoryScanPanel({
   domainId,

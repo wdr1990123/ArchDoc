@@ -4,11 +4,11 @@ import { getScanOverview } from "@/lib/metrics/scanMetrics";
 import { getReportsForScan, getLatestProjectReport } from "@/lib/jobs/diagnoseJob";
 import { getDomain, getRepositoryForScanRun, getScanRun } from "@/lib/db/queries";
 import { computeStranglerCandidates } from "@/lib/db/federation";
-import { Card, Badge, BackLink } from "@/components/ui";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { ScanSubNav } from "@/components/ScanSubNav";
-import { HealthRadar } from "@/components/HealthRadar";
-import { DiagnoseButton } from "./DiagnoseButton";
+import { Card, Badge, BackLink } from "@/components/layout/ui";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { ScanSubNav } from "@/components/scans/ScanSubNav";
+import { HealthRadar } from "@/components/scans/HealthRadar";
+import { DiagnoseButton } from "@/components/scans/DiagnoseButton";
 import { buildScanBreadcrumbs } from "@/lib/nav/breadcrumbs";
 import { zh, severityLabel, statusLabel, formatDateTime } from "@/lib/i18n/zh";
 

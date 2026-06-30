@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, Button } from "@/components/ui";
+import { Card, Button } from "@/components/layout/ui";
 import { apiPost } from "@/lib/api/client";
-import { ScanCommand } from "@/components/ScanCommand";
-import { ScanWaitPanel } from "@/components/ScanWaitPanel";
-import { UploadScanJson } from "@/components/UploadScanJson";
+import { ScanCommand } from "@/components/scans/ScanCommand";
+import { ScanWaitPanel } from "@/components/scans/ScanWaitPanel";
+import { UploadScanJson } from "@/components/scans/UploadScanJson";
 import { zh } from "@/lib/i18n/zh";
 
 function repoNameFromSolution(path: string): string {

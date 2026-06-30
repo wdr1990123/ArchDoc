@@ -2,11 +2,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getDomain, listRepositoriesByDomain, listScanRunsByDomain, getDomainProgress } from "@/lib/db/queries";
 import { listDomainSnapshots } from "@/lib/db/federation";
-import { Card, Badge, PageHeader, NavLink, EmptyState } from "@/components/ui";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { DomainProgressBar } from "@/components/DomainProgressBar";
-import { DomainActions } from "./DomainActions";
-import { DeleteDomainButton } from "@/app/DeleteDomainButton";
+import { Card, Badge, PageHeader, NavLink, EmptyState } from "@/components/layout/ui";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { DomainProgressBar } from "@/components/shared/DomainProgressBar";
+import { DomainActions } from "@/components/domains/DomainActions";
+import { DeleteDomainButton } from "@/components/domains/DeleteDomainButton";
 import { homeCrumb, domainCrumb } from "@/lib/nav/breadcrumbs";
 import { zh, statusLabel, formatDateTime } from "@/lib/i18n/zh";
 

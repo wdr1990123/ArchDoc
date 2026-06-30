@@ -7,10 +7,10 @@ import {
 } from "@/lib/metrics/scanMetrics";
 import { buildStructureFacts } from "@/lib/metrics/structureFacts";
 import { buildEvidenceCatalog } from "@/lib/evidence/catalog";
-import { Card, Badge, BackLink } from "@/components/ui";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { ReportContentTabs } from "@/components/ReportContentTabs";
-import { ReportEvidenceSidebar } from "@/components/EvidencePanel";
+import { Card, Badge, BackLink } from "@/components/layout/ui";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { ReportContentTabs } from "@/components/reports/ReportContentTabs";
+import { ReportEvidenceSidebar } from "@/components/reports/EvidencePanel";
 import { buildScanBreadcrumbs } from "@/lib/nav/breadcrumbs";
 import { zh, statusLabel } from "@/lib/i18n/zh";
 import type { AiReportContent, EvidenceCatalogEntry } from "@/lib/types";

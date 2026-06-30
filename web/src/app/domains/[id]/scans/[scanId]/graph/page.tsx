@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
 import { getDomain, getRepositoryForScanRun, getScanRun } from "@/lib/db/queries";
 import { getGraphForScan } from "@/lib/metrics/scanMetrics";
-import { Card, BackLink } from "@/components/ui";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { ScanSubNav } from "@/components/ScanSubNav";
-import { DependencyGraph } from "@/components/DependencyGraph";
+import { Card, BackLink } from "@/components/layout/ui";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { ScanSubNav } from "@/components/scans/ScanSubNav";
+import { DependencyGraph } from "@/components/graph/DependencyGraph";
 import { buildScanBreadcrumbs } from "@/lib/nav/breadcrumbs";
 import { zh } from "@/lib/i18n/zh";
 

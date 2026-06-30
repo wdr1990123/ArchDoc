@@ -1,4 +1,5 @@
 import { coerceToStringArray } from "@/lib/validation/reportValidator";
+import { query } from "@/lib/db/client";
 import type { AiReportContent, ModuleIntentDetail } from "@/lib/types";
 
 export interface ModuleIntentRollupEntry {

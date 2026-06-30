@@ -1,4 +1,4 @@
-import type { BreadcrumbItem } from "@/components/Breadcrumbs";
+import type { BreadcrumbItem } from "@/components/layout/Breadcrumbs";
 import { zh } from "@/lib/i18n/zh";
 
 export function homeCrumb(): BreadcrumbItem {

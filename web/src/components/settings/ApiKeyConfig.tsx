@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Card, Button, Badge } from "@/components/ui";
+import { Card, Button, Badge } from "@/components/layout/ui";
 import { getStoredApiKey, setStoredApiKey } from "@/lib/api/storage";
 
 type Status = "idle" | "saved" | "verified" | "error";

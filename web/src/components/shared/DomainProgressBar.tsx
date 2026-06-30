@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Card } from "@/components/ui";
+import { Card } from "@/components/layout/ui";
 import { zh } from "@/lib/i18n/zh";
 
 export interface DomainProgress {

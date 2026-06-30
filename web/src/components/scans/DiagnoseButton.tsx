@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui";
+import { Button } from "@/components/layout/ui";
 import { runDiagnoseAndWait } from "@/lib/jobs/waitForDiagnose";
 import { zh } from "@/lib/i18n/zh";
 

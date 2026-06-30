@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
 import { getDomain } from "@/lib/db/queries";
 import { listDomainSnapshots, getFederationGraph } from "@/lib/db/federation";
-import { Card, Badge, BackLink, EmptyState } from "@/components/ui";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { DependencyGraph } from "@/components/DependencyGraph";
+import { Card, Badge, BackLink, EmptyState } from "@/components/layout/ui";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { DependencyGraph } from "@/components/graph/DependencyGraph";
 import { zh, statusLabel } from "@/lib/i18n/zh";
 import { domainCrumb, homeCrumb } from "@/lib/nav/breadcrumbs";
 

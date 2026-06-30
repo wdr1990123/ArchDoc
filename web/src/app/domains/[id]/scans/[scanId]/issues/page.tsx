@@ -5,9 +5,9 @@ import { getIssuesForScan, getModulesForScan } from "@/lib/metrics/scanMetrics";
 import { getLatestProjectReport } from "@/lib/jobs/diagnoseJob";
 import { buildIssueActionMap } from "@/lib/governance/governancePlan";
 import type { AiReportContent } from "@/lib/types";
-import { Card, Badge, BackLink, EmptyState } from "@/components/ui";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { ScanSubNav } from "@/components/ScanSubNav";
+import { Card, Badge, BackLink, EmptyState } from "@/components/layout/ui";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { ScanSubNav } from "@/components/scans/ScanSubNav";
 import { buildScanBreadcrumbs } from "@/lib/nav/breadcrumbs";
 import { zh, severityLabel } from "@/lib/i18n/zh";
 

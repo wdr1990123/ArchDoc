@@ -6,9 +6,11 @@ ArchDoc 使用 PostgreSQL，表位于 **`ArchDoc` schema**（默认连接 `postg
 
 ```bash
 cd web
-cp .env.example .env.local   # 设置 DATABASE_URL
+cp .env.example .env.local   # 设置 DATABASE_URL（也支持 .env）
 npm run db:init
 ```
+
+脚本会读取 `web/.env.local` 或 `web/.env` 中的 `DATABASE_URL`（见 `web/scripts/lib/load-env.mjs`）。
 
 ## 手动执行
 

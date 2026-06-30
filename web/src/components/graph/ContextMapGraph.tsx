@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { DependencyGraph } from "@/components/DependencyGraph";
+import { DependencyGraph } from "@/components/graph/DependencyGraph";
 import type { DddGovernance } from "@/lib/types";
 import { zh } from "@/lib/i18n/zh";
 

@@ -161,19 +161,18 @@ Multi-scan → POST /api/v1/domains/:id/snapshot → cross_repo_dependencies
 ```
 ArchDoc/
 ├── web/                          # Next.js 14 UI + BFF
-│   ├── src/app/api/v1/           # REST API Route Handlers
-│   ├── src/lib/db/               # pg 连接、queries、federation
-│   ├── src/lib/llm/              # LlmProvider 抽象
-│   ├── src/lib/jobs/             # diagnoseJob、job 轮询
-│   ├── src/components/           # UI 组件（含 QuickStartWizard 等）
+│   ├── src/app/                  # 路由页面 + api/v1 REST handlers
+│   ├── src/components/           # UI 组件（layout/domains/scans/reports 等）
+│   ├── src/lib/                  # db、jobs、llm、governance、metrics、validation
+│   ├── scripts/                  # db:init、db:migrate 等 npm 脚本
 │   └── tests/                    # Vitest API 自动化测试
 ├── scanner/                      # .NET 8 解决方案
 │   ├── ArchDoc.Scanner/          # Roslyn + LegacySolutionScanner
 │   ├── ArchDoc.Metrics/          # 环检测、Ce/Ca、分层违规
 │   └── ArchDoc.Cli/              # archdoc-scan CLI
-├── packages/
-│   └── scan-result.schema.json   # 扫描产物 JSON Schema v1
+├── packages/                     # scan-result / report JSON Schema
 ├── db/migrations/                # 001_init, 002_jobs, 003_domain_name_unique
+├── scripts/                      # 仓库级开发工具
 └── docs/
     ├── MASTER_PLAN.md            # 本文档
     ├── ARCHITECTURE.md

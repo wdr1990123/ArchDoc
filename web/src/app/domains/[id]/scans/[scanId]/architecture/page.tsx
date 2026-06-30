@@ -3,10 +3,10 @@ import { notFound } from "next/navigation";
 import { getDomain, getRepositoryForScanRun, getScanRun } from "@/lib/db/queries";
 import { buildStructureFacts } from "@/lib/metrics/structureFacts";
 import { getLatestModuleReportMap } from "@/lib/metrics/moduleContextPack";
-import { Card, Badge, BackLink } from "@/components/ui";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { ScanSubNav } from "@/components/ScanSubNav";
-import { ModuleDiagnoseButton } from "@/components/ModuleDiagnoseButton";
+import { Card, Badge, BackLink } from "@/components/layout/ui";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { ScanSubNav } from "@/components/scans/ScanSubNav";
+import { ModuleDiagnoseButton } from "@/components/scans/ModuleDiagnoseButton";
 import { buildScanBreadcrumbs } from "@/lib/nav/breadcrumbs";
 import { zh } from "@/lib/i18n/zh";
 

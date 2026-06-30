@@ -1,14 +1,14 @@
 import dynamic from "next/dynamic";
-import { PageHeader, Card } from "@/components/ui";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { ApiKeyConfig } from "@/components/ApiKeyConfig";
+import { PageHeader, Card } from "@/components/layout/ui";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { ApiKeyConfig } from "@/components/settings/ApiKeyConfig";
 import { zh } from "@/lib/i18n/zh";
 import { homeCrumb } from "@/lib/nav/breadcrumbs";
 import { checkDbConnection } from "@/lib/db/client";
 import { getLlmSettings, sanitizeProfileForClient } from "@/lib/llm/config";
 
 const LlmSettingsPanel = dynamic(
-  () => import("@/components/LlmSettingsPanel").then((m) => m.LlmSettingsPanel),
+  () => import("@/components/settings/LlmSettingsPanel").then((m) => m.LlmSettingsPanel),
   {
     ssr: false,
     loading: () => (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Button } from "@/components/ui";
+import { Button } from "@/components/layout/ui";
 import { getStoredApiKey } from "@/lib/api/storage";
 import {
   buildScanCommand,

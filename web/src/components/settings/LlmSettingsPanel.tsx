@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Card, Badge } from "@/components/ui";
+import { Card, Badge } from "@/components/layout/ui";
 import { zh } from "@/lib/i18n/zh";
 import type { LlmProfile, LlmProfileRole, LlmSettings } from "@/lib/llm/types";
 import { apiPut, apiPost } from "@/lib/api/client";

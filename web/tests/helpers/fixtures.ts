@@ -10,6 +10,7 @@ import {
 } from "./test-markers";
 import type { ScanResultPayload } from "@/lib/types";
 import { apiRequest, routeContext } from "./request";
+import { getJob, getReportsForScan } from "@/lib/jobs/reportPersist";
 
 export interface TestFixtures {
   suffix: string;
@@ -104,7 +105,33 @@ export async function createTestFixtures(): Promise<TestFixtures> {
   const diagnoseBody = (await diagnoseRes.json()) as {
     job_id: string;
     report_id?: string;
+    error?: string;
   };
+  if (!diagnoseRes.ok) {
+    throw new Error(
+      `Failed to run sync diagnose: ${diagnoseBody.error ?? diagnoseRes.status}`
+    );
+  }
+
+  let reportId = diagnoseBody.report_id ?? "";
+  if (!reportId && diagnoseBody.job_id) {
+    const job = await getJob(diagnoseBody.job_id);
+    const result =
+      typeof job?.result === "string"
+        ? (JSON.parse(job.result) as { report_id?: string })
+        : (job?.result as { report_id?: string } | undefined);
+    reportId = result?.report_id ?? "";
+    if (!reportId && job?.status === "failed") {
+      throw new Error(`Diagnose job failed: ${job.error_message ?? "unknown"}`);
+    }
+  }
+  if (!reportId) {
+    const reports = await getReportsForScan(scanRunId);
+    reportId = reports.find((r) => r.report_type === "project")?.id ?? reports[0]?.id ?? "";
+  }
+  if (!reportId) {
+    throw new Error("Sync diagnose completed without report_id");
+  }
 
   cachedFixtures = {
     suffix,
@@ -113,7 +140,7 @@ export async function createTestFixtures(): Promise<TestFixtures> {
     scanRunId,
     snapshotId,
     jobId: diagnoseBody.job_id,
-    reportId: diagnoseBody.report_id ?? "",
+    reportId,
   };
 
   return cachedFixtures;

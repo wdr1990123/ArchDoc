@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { listDomains } from "@/lib/db/queries";
-import { Card, Badge, PageHeader, EmptyState, Button } from "@/components/ui";
-import { CreateDomainForm } from "./CreateDomainForm";
-import { DeleteDomainButton } from "./DeleteDomainButton";
+import { Card, Badge, PageHeader, EmptyState, Button } from "@/components/layout/ui";
+import { CreateDomainForm } from "@/components/domains/CreateDomainForm";
+import { DeleteDomainButton } from "@/components/domains/DeleteDomainButton";
 import { zh, formatDate } from "@/lib/i18n/zh";
 
 export default async function HomePage() {

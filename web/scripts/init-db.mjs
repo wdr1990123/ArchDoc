@@ -2,28 +2,19 @@ import pg from "pg";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { loadEnvFiles } from "./lib/load-env.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-function loadEnvLocal() {
-  const envPath = path.resolve(__dirname, "../.env.local");
-  if (!fs.existsSync(envPath)) return;
-  for (const line of fs.readFileSync(envPath, "utf8").split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) continue;
-    const eq = trimmed.indexOf("=");
-    if (eq === -1) continue;
-    const key = trimmed.slice(0, eq);
-    const val = trimmed.slice(eq + 1);
-    if (!process.env[key]) process.env[key] = val;
-  }
-}
+loadEnvFiles(path.resolve(__dirname, ".."));
 
-loadEnvLocal();
 const schema = process.env.ARCHDOC_PG_SCHEMA ?? "ArchDoc";
-const baseUrl =
-  process.env.DATABASE_URL?.split("?")[0] ??
-  "postgresql://postgres:jhnzNo.13y15@localhost:5432/postgres";
+const baseUrl = process.env.DATABASE_URL?.split("?")[0];
+
+if (!baseUrl) {
+  console.error("DATABASE_URL not set. Copy web/.env.example to web/.env.local first.");
+  process.exit(1);
+}
 
 const client = new pg.Client({ connectionString: baseUrl });
 

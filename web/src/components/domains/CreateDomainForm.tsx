@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Card, Button } from "@/components/ui";
+import { Card, Button } from "@/components/layout/ui";
 import { apiPost } from "@/lib/api/client";
 import { zh } from "@/lib/i18n/zh";
 

@@ -1,9 +1,9 @@
-import { BackLink, PageHeader, Card } from "@/components/ui";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { BackLink, PageHeader, Card } from "@/components/layout/ui";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
 import { getDomain, listRepositoriesByDomain } from "@/lib/db/queries";
 import { notFound } from "next/navigation";
-import { AddRepositoryForm } from "./AddRepositoryForm";
-import { RepositoryScanPanel } from "./RepositoryScanPanel";
+import { AddRepositoryForm } from "@/components/repositories/AddRepositoryForm";
+import { RepositoryScanPanel } from "@/components/repositories/RepositoryScanPanel";
 import { zh } from "@/lib/i18n/zh";
 import { domainCrumb, homeCrumb } from "@/lib/nav/breadcrumbs";
 

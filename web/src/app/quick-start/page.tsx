@@ -1,6 +1,6 @@
-import { PageHeader } from "@/components/ui";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
-import { QuickStartWizard } from "@/components/QuickStartWizard";
+import { PageHeader } from "@/components/layout/ui";
+import { Breadcrumbs } from "@/components/layout/Breadcrumbs";
+import { QuickStartWizard } from "@/components/shared/QuickStartWizard";
 import { zh } from "@/lib/i18n/zh";
 import { homeCrumb } from "@/lib/nav/breadcrumbs";
 

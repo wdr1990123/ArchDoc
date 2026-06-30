@@ -159,20 +159,31 @@ dotnet run --project ArchDoc.Cli -- `
 
 ```
 ArchDoc/
-├── web/                    # Next.js 前端 + REST API
-│   ├── src/lib/governance/ # 治理行动合并、DDD 关联、模块意图汇总
-│   ├── src/lib/metrics/    # structureFacts、moduleContextPack
-│   └── tests/              # Vitest API + 单元测试
-├── scanner/                # .NET Roslyn 扫描 CLI
-├── db/                     # PostgreSQL 迁移脚本
-├── packages/               # JSON Schema 契约
-│   ├── scan-result.schema.json
-│   └── report.schema.json
-├── docs/
-│   ├── MASTER_PLAN.md      # 完整方案 + 进度追踪（Living Document）
-│   ├── ARCHITECTURE.md
-│   └── DEPLOYMENT.md
-└── scripts/                # 工具脚本
+├── web/                         # Next.js 前端 + REST API
+│   ├── src/app/                 # 路由页面 + api/v1 REST handlers
+│   ├── src/components/          # UI 组件（按功能域分子目录）
+│   │   ├── layout/              # AppNav、Breadcrumbs、ui
+│   │   ├── domains/             # 诊断项目相关
+│   │   ├── repositories/        # 仓库管理
+│   │   ├── scans/               # 扫描、诊断按钮
+│   │   ├── reports/             # 报告展示
+│   │   ├── graph/               # 依赖图
+│   │   ├── settings/            # 系统设置
+│   │   └── shared/              # 跨页通用（QuickStart 等）
+│   ├── src/lib/                 # 业务逻辑
+│   │   ├── db/                  # PostgreSQL 连接与查询
+│   │   ├── jobs/                # 诊断任务队列
+│   │   ├── llm/                 # 大模型抽象与 prompts
+│   │   ├── governance/          # 治理行动、DDD 关联
+│   │   ├── metrics/             # 结构事实、指标
+│   │   └── validation/          # 报告校验
+│   ├── scripts/                 # npm db:* 等脚本
+│   └── tests/                   # Vitest API + 单元测试
+├── scanner/                     # .NET Roslyn 扫描 CLI
+├── db/migrations/               # PostgreSQL 迁移脚本
+├── packages/                    # JSON Schema 契约
+├── docs/                        # 架构与部署文档
+└── scripts/                     # 仓库级开发工具
 ```
 
 ## 部署

@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Markdown from "react-markdown";
-import { ReportView } from "@/components/ReportView";
-import { Button } from "@/components/ui";
+import { ReportView } from "@/components/reports/ReportView";
+import { Button } from "@/components/layout/ui";
 import { zh } from "@/lib/i18n/zh";
 import type { AiReportContent, EvidenceCatalogEntry } from "@/lib/types";
 

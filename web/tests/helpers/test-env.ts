@@ -2,17 +2,20 @@ import fs from "fs";
 import path from "path";
 
 export function loadEnvLocal() {
-  const envPath = path.resolve(__dirname, "../../.env.local");
-  if (!fs.existsSync(envPath)) return;
+  const webRoot = path.resolve(__dirname, "../..");
+  for (const name of [".env.local", ".env"]) {
+    const envPath = path.join(webRoot, name);
+    if (!fs.existsSync(envPath)) continue;
 
-  for (const line of fs.readFileSync(envPath, "utf8").split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) continue;
-    const eq = trimmed.indexOf("=");
-    if (eq === -1) continue;
-    const key = trimmed.slice(0, eq);
-    const val = trimmed.slice(eq + 1);
-    if (!process.env[key]) process.env[key] = val;
+    for (const line of fs.readFileSync(envPath, "utf8").split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const eq = trimmed.indexOf("=");
+      if (eq === -1) continue;
+      const key = trimmed.slice(0, eq);
+      const val = trimmed.slice(eq + 1);
+      if (!process.env[key]) process.env[key] = val;
+    }
   }
 }
 
